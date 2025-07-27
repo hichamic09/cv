@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>منشئ السيرة الذاتية</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      direction: rtl;
+      margin: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 5px;
+      margin-top: 5px;
+    }
+    .section-toggle {
+      margin: 10px 0;
+    }
+    #form-section, #output-section {
+      display: none;
+    }
+    .buttons {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="start-section">
+    <h2>اختر اللغة / Choose Language</h2>
+    <button onclick="startForm('ar')">العربية</button>
+    <button onclick="startForm('en')">English</button>
+  </div>
+
+  <div id="form-section">
+    <h2>معلومات السيرة الذاتية</h2>
+    <label>الاسم الكامل:</label>
+    <input type="text" id="name" />
+
+    <label>البريد الإلكتروني:</label>
+    <input type="email" id="email" />
+
+    <div class="section-toggle">
+      <input type="checkbox" id="toggle-phone" checked />
+      <label for="toggle-phone">إظهار رقم الهاتف</label>
+      <input type="text" id="phone" />
+    </div>
+
+    <label>العنوان:</label>
+    <input type="text" id="address" />
+
+    <div class="section-toggle">
+      <input type="checkbox" id="toggle-education" checked />
+      <label for="toggle-education">إظهار التعليم</label>
+      <textarea id="education"></textarea>
+    </div>
+
+    <div class="section-toggle">
+      <input type="checkbox" id="toggle-experience" checked />
+      <label for="toggle-experience">إظهار الخبرات</label>
+      <textarea id="experience"></textarea>
+    </div>
+
+    <div class="section-toggle">
+      <input type="checkbox" id="toggle-skills" checked />
+      <label for="toggle-skills">إظهار المهارات</label>
+      <textarea id="skills"></textarea>
+    </div>
+
+    <div class="section-toggle">
+      <input type="checkbox" id="toggle-languages" checked />
+      <label for="toggle-languages">إظهار اللغات</label>
+      <textarea id="languages"></textarea>
+    </div>
+
+    <div class="section-toggle">
+      <input type="checkbox" id="toggle-photo" checked />
+      <label for="toggle-photo">إظهار الصورة الشخصية</label>
+      <input type="file" id="photo" accept="image/*" />
+    </div>
+
+    <div class="buttons">
+      <button onclick="generatePDF()">معاينة وتحميل PDF</button>
+      <button onclick="goBack()">رجوع</button>
+    </div>
+  </div>
+
+  <div id="output-section">
+    <h3>تم إنشاء السيرة الذاتية!</h3>
+    <a id="download-link" href="#" download="cv.pdf">تحميل السيرة الذاتية</a><br><br>
+    <button id="share-button">مشاركة عبر الشبكات الاجتماعية</button>
+    <br><br>
+    <button onclick="goBack()">رجوع</button>
+  </div>
+
+  <script>
+    let language = 'ar';
+
+    function startForm(lang) {
+      language = lang;
+      document.getElementById('start-section').style.display = 'none';
+      document.getElementById('form-section').style.display = 'block';
+    }
+
+    function goBack() {
+      document.getElementById('form-section').style.display = 'none';
+      document.getElementById('output-section').style.display = 'none';
+      document.getElementById('start-section').style.display = 'block';
+    }
+
+    async function generatePDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const phone = document.getElementById('phone').value;
+      const address = document.getElementById('address').value;
+      const education = document.getElementById('education').value;
+      const experience = document.getElementById('experience').value;
+      const skills = document.getElementById('skills').value;
+      const languages = document.getElementById('languages').value;
+      const photoFile = document.getElementById('photo').files[0];
+
+      const showPhone = document.getElementById('toggle-phone').checked;
+      const showEducation = document.getElementById('toggle-education').checked;
+      const showExperience = document.getElementById('toggle-experience').checked;
+      const showSkills = document.getElementById('toggle-skills').checked;
+      const showLanguages = document.getElementById('toggle-languages').checked;
+      const showPhoto = document.getElementById('toggle-photo').checked;
+
+      let y = 10;
+      doc.text(`الاسم: ${name}`, 10, y); y += 10;
+      doc.text(`البريد الإلكتروني: ${email}`, 10, y); y += 10;
+
+      if (showPhone && phone) {
+        doc.text(`الهاتف: ${phone}`, 10, y); y += 10;
+      }
+
+      doc.text(`العنوان: ${address}`, 10, y); y += 10;
+
+      if (showEducation && education) {
+        doc.text("التعليم:", 10, y); y += 10;
+        doc.text(education, 10, y); y += 20;
+      }
+
+      if (showExperience && experience) {
+        doc.text("الخبرات:", 10, y); y += 10;
+        doc.text(experience, 10, y); y += 20;
+      }
+
+      if (showSkills && skills) {
+        doc.text("المهارات:", 10, y); y += 10;
+        doc.text(skills, 10, y); y += 20;
+      }
+
+      if (showLanguages && languages) {
+        doc.text("اللغات:", 10, y); y += 10;
+        doc.text(languages, 10, y); y += 20;
+      }
+
+      function saveAndShowShare(doc) {
+        const pdfBlob = doc.output("blob");
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        const link = document.getElementById("download-link");
+        link.href = pdfUrl;
+
+        document.getElementById("form-section").style.display = "none";
+        document.getElementById("output-section").style.display = "block";
+
+        const shareButton = document.getElementById("share-button");
+        shareButton.onclick = () => {
+          if (navigator.share) {
+            navigator.share({
+              title: 'سيرتي الذاتية',
+              text: 'تم إنشاء سيرتي الذاتية باستخدام هذا الموقع',
+              url: pdfUrl
+            }).catch(err => alert('فشل المشاركة: ' + err));
+          } else {
+            alert('ميزة المشاركة غير مدعومة في متصفحك.');
+          }
+        };
+      }
+
+      if (showPhoto && photoFile) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          const imgData = event.target.result;
+          doc.addImage(imgData, 'JPEG', 150, 10, 40, 40);
+          saveAndShowShare(doc);
+        };
+        reader.readAsDataURL(photoFile);
+      } else {
+        saveAndShowShare(doc);
+      }
+    }
+  </script>
+</body>
+</html>
