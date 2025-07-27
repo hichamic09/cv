@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar">
 <head>
@@ -37,14 +38,15 @@
       <input type="text" id="languages" placeholder="مثال: العربية (متقدمة)، الإنجليزية (متوسطة)">
     </label>
     <label>الصورة الشخصية: <input type="file" id="photo"></label>
-    <label>إظهار الحقول:
+    <fieldset>
+      <legend>إظهار/إخفاء الحقول:</legend>
       <label><input type="checkbox" id="showPhoto" checked> الصورة</label>
       <label><input type="checkbox" id="showSkills" checked> المهارات</label>
       <label><input type="checkbox" id="showPhone" checked> رقم الهاتف</label>
       <label><input type="checkbox" id="showLanguages" checked> اللغات</label>
-    </label>
+    </fieldset>
     <button class="button" onclick="generatePDF()">معاينة وتحميل</button>
-    <button class="button button-secondary" onclick="goBack()">رجوع</button>
+    <button class="button-secondary button" onclick="goBack()">رجوع</button>
   </div>
 
   <script>
@@ -90,7 +92,6 @@ ${languages}`;
 
       function saveAndShowShare(doc) {
         doc.save("cv.pdf");
-
         if (navigator.share) {
           navigator.share({
             title: "سيرتي الذاتية",
