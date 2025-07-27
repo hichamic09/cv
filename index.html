@@ -1,237 +1,121 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>مولد السيرة الذاتية</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    body { font-family: Tahoma, sans-serif; padding: 20px; background: #f2f2f2; }
-    h1 { text-align: center; }
-    form { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    input, textarea, select { width: 100%; padding: 10px; margin: 10px 0; }
-    button { padding: 10px 20px; background: #2196f3; color: white; border: none; border-radius: 5px; cursor: pointer; }
-    #cv-preview { display: none; margin-top: 30px; background: white; padding: 20px; border-radius: 10px; }
-    .section-toggle { display: flex; align-items: center; margin-top: 10px; }
-    .section-toggle input { width: auto; margin-right: 10px; }
+    body { font-family: Arial, sans-serif; direction: rtl; padding: 20px; }
+    label, input, select, textarea { display: block; margin-bottom: 10px; width: 100%; max-width: 400px; }
+    .hidden { display: none; }
+    .button { margin-top: 10px; padding: 10px 20px; background: #28a745; color: white; border: none; cursor: pointer; border-radius: 5px; }
+    .button-secondary { background: #007bff; margin-left: 10px; }
+    #form-section, #preview-section { margin-top: 20px; }
   </style>
 </head>
 <body>
-  <div id="language-selection">
-    <h1>اختر اللغة / Choose Language</h1>
-    <select id="language">
-      <option value="ar">العربية</option>
-      <option value="en">English</option>
-      <option value="fr">Français</option>
-      <option value="de">Deutsch</option>
-      <option value="es">Español</option>
-    </select>
-    <button onclick="showForm()">ابدأ / Start</button>
+  <h2>مولد السيرة الذاتية</h2>
+
+  <div id="form-section">
+    <label>اختر اللغة:
+      <select id="language">
+        <option value="ar">العربية</option>
+        <option value="en">English</option>
+        <option value="fr">Français</option>
+      </select>
+    </label>
+    <button class="button" onclick="startForm()">ابدأ</button>
   </div>
 
-  <div id="form-section" style="display:none;">
-    <h1 id="main-title">إنشاء سيرتك الذاتية</h1>
-    <form id="cv-form">
-      <label id="label-name">الاسم الكامل:</label>
-      <input type="text" id="name" required />
-
-      <label id="label-email">البريد الإلكتروني:</label>
-      <input type="email" id="email" required />
-
-      <label id="label-address">العنوان:</label>
-      <input type="text" id="address" />
-
-      <div class="section-toggle">
-        <input type="checkbox" id="toggle-experience" checked />
-        <label for="toggle-experience" id="label-toggle-experience">إظهار الخبرات</label>
-      </div>
-      <label id="label-experience">الخبرات:</label>
-      <textarea id="experience" rows="3"></textarea>
-
-      <div class="section-toggle">
-        <input type="checkbox" id="toggle-education" checked />
-        <label for="toggle-education" id="label-toggle-education">إظهار التعليم</label>
-      </div>
-      <label id="label-education">التعليم:</label>
-      <textarea id="education" rows="3"></textarea>
-
-      <div class="section-toggle">
-        <input type="checkbox" id="toggle-skills" checked />
-        <label for="toggle-skills" id="label-toggle-skills">إظهار المهارات</label>
-      </div>
-      <label id="label-skills">المهارات:</label>
-      <textarea id="skills" rows="3"></textarea>
-
-      <label id="label-photo">الصورة الشخصية:</label>
-      <input type="file" id="photo" accept="image/*" />
-
-      <button type="submit" id="submit-btn">معاينة وتحميل</button>
-    </form>
+  <div id="preview-section" class="hidden">
+    <label>الاسم الكامل: <input type="text" id="fullName"></label>
+    <label>المسمى الوظيفي: <input type="text" id="jobTitle"></label>
+    <label>البريد الإلكتروني: <input type="email" id="email"></label>
+    <label>رقم الهاتف: <input type="tel" id="phone"></label>
+    <label>المهارات: <textarea id="skills"></textarea></label>
+    <label>اللغات:
+      <input type="text" id="languages" placeholder="مثال: العربية (متقدمة)، الإنجليزية (متوسطة)">
+    </label>
+    <label>الصورة الشخصية: <input type="file" id="photo"></label>
+    <label>إظهار الحقول:
+      <label><input type="checkbox" id="showPhoto" checked> الصورة</label>
+      <label><input type="checkbox" id="showSkills" checked> المهارات</label>
+      <label><input type="checkbox" id="showPhone" checked> رقم الهاتف</label>
+      <label><input type="checkbox" id="showLanguages" checked> اللغات</label>
+    </label>
+    <button class="button" onclick="generatePDF()">معاينة وتحميل</button>
+    <button class="button button-secondary" onclick="goBack()">رجوع</button>
   </div>
-
-  <div id="cv-preview"></div>
 
   <script>
-    let selectedLang = 'ar';
-
-    function showForm() {
-      selectedLang = document.getElementById('language').value;
-      document.getElementById('language-selection').style.display = 'none';
-      document.getElementById('form-section').style.display = 'block';
-      applyTranslations(selectedLang);
+    function startForm() {
+      document.getElementById("form-section").classList.add("hidden");
+      document.getElementById("preview-section").classList.remove("hidden");
     }
 
-    const translations = {
-      ar: {
-        title: "إنشاء سيرتك الذاتية",
-        name: "الاسم الكامل:",
-        email: "البريد الإلكتروني:",
-        address: "العنوان:",
-        experience: "الخبرات:",
-        education: "التعليم:",
-        skills: "المهارات:",
-        photo: "الصورة الشخصية:",
-        submit: "معاينة وتحميل",
-        toggleExperience: "إظهار الخبرات",
-        toggleEducation: "إظهار التعليم",
-        toggleSkills: "إظهار المهارات"
-      },
-      en: {
-        title: "Create Your CV",
-        name: "Full Name:",
-        email: "Email:",
-        address: "Address:",
-        experience: "Experience:",
-        education: "Education:",
-        skills: "Skills:",
-        photo: "Profile Photo:",
-        submit: "Preview & Download",
-        toggleExperience: "Show Experience",
-        toggleEducation: "Show Education",
-        toggleSkills: "Show Skills"
-      },
-      fr: {
-        title: "Créez votre CV",
-        name: "Nom complet:",
-        email: "Email:",
-        address: "Adresse:",
-        experience: "Expérience:",
-        education: "Éducation:",
-        skills: "Compétences:",
-        photo: "Photo de profil:",
-        submit: "Prévisualiser et Télécharger",
-        toggleExperience: "Afficher l'expérience",
-        toggleEducation: "Afficher l'éducation",
-        toggleSkills: "Afficher les compétences"
-      },
-      de: {
-        title: "Erstellen Sie Ihren Lebenslauf",
-        name: "Vollständiger Name:",
-        email: "E-Mail:",
-        address: "Adresse:",
-        experience: "Erfahrung:",
-        education: "Ausbildung:",
-        skills: "Fähigkeiten:",
-        photo: "Profilfoto:",
-        submit: "Vorschau & Herunterladen",
-        toggleExperience: "Erfahrung anzeigen",
-        toggleEducation: "Ausbildung anzeigen",
-        toggleSkills: "Fähigkeiten anzeigen"
-      },
-      es: {
-        title: "Crea tu CV",
-        name: "Nombre completo:",
-        email: "Correo electrónico:",
-        address: "Dirección:",
-        experience: "Experiencia:",
-        education: "Educación:",
-        skills: "Habilidades:",
-        photo: "Foto de perfil:",
-        submit: "Vista previa y Descargar",
-        toggleExperience: "Mostrar experiencia",
-        toggleEducation: "Mostrar educación",
-        toggleSkills: "Mostrar habilidades"
-      }
-    };
-
-    function applyTranslations(lang) {
-      const t = translations[lang];
-      document.getElementById('main-title').innerText = t.title;
-      document.getElementById('label-name').innerText = t.name;
-      document.getElementById('label-email').innerText = t.email;
-      document.getElementById('label-address').innerText = t.address;
-      document.getElementById('label-experience').innerText = t.experience;
-      document.getElementById('label-education').innerText = t.education;
-      document.getElementById('label-skills').innerText = t.skills;
-      document.getElementById('label-photo').innerText = t.photo;
-      document.getElementById('submit-btn').innerText = t.submit;
-      document.getElementById('label-toggle-experience').innerText = t.toggleExperience;
-      document.getElementById('label-toggle-education').innerText = t.toggleEducation;
-      document.getElementById('label-toggle-skills').innerText = t.toggleSkills;
+    function goBack() {
+      document.getElementById("preview-section").classList.add("hidden");
+      document.getElementById("form-section").classList.remove("hidden");
     }
 
-    const form = document.getElementById('cv-form');
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-
-      const name = document.getElementById('name').value;
-      const email = document.getElementById('email').value;
-      const address = document.getElementById('address').value;
-      const showExperience = document.getElementById('toggle-experience').checked;
-      const showEducation = document.getElementById('toggle-education').checked;
-      const showSkills = document.getElementById('toggle-skills').checked;
-      const experience = showExperience ? document.getElementById('experience').value : "";
-      const education = showEducation ? document.getElementById('education').value : "";
-      const skills = showSkills ? document.getElementById('skills').value : "";
-      const photoFile = document.getElementById('photo').files[0];
-
-      const { jsPDF } = window.jspdf;
+    async function generatePDF() {
+      const {{ jsPDF }} = window.jspdf;
       const doc = new jsPDF();
 
-      let content = "";
-      if (selectedLang === "ar") {
-        content = `الاسم: ${name}\nالبريد الإلكتروني: ${email}\nالعنوان: ${address}`;
-        if (experience) content += `\nالخبرات:\n${experience}`;
-        if (education) content += `\nالتعليم:\n${education}`;
-        if (skills) content += `\nالمهارات:\n${skills}`;
-      } else if (selectedLang === "en") {
-        content = `Name: ${name}\nEmail: ${email}\nAddress: ${address}`;
-        if (experience) content += `\nExperience:\n${experience}`;
-        if (education) content += `\nEducation:\n${education}`;
-        if (skills) content += `\nSkills:\n${skills}`;
-      } else if (selectedLang === "fr") {
-        content = `Nom: ${name}\nEmail: ${email}\nAdresse: ${address}`;
-        if (experience) content += `\nExpérience:\n${experience}`;
-        if (education) content += `\nÉducation:\n${education}`;
-        if (skills) content += `\nCompétences:\n${skills}`;
-      } else if (selectedLang === "de") {
-        content = `Name: ${name}\nE-Mail: ${email}\nAdresse: ${address}`;
-        if (experience) content += `\nErfahrung:\n${experience}`;
-        if (education) content += `\nAusbildung:\n${education}`;
-        if (skills) content += `\nFähigkeiten:\n${skills}`;
-      } else if (selectedLang === "es") {
-        content = `Nombre: ${name}\nCorreo electrónico: ${email}\nDirección: ${address}`;
-        if (experience) content += `\nExperiencia:\n${experience}`;
-        if (education) content += `\nEducación:\n${education}`;
-        if (skills) content += `\nHabilidades:\n${skills}`;
+      const fullName = document.getElementById("fullName").value;
+      const jobTitle = document.getElementById("jobTitle").value;
+      const email = document.getElementById("email").value;
+      const phone = document.getElementById("phone").value;
+      const skills = document.getElementById("skills").value;
+      const languages = document.getElementById("languages").value;
+
+      const showPhoto = document.getElementById("showPhoto").checked;
+      const showSkills = document.getElementById("showSkills").checked;
+      const showPhone = document.getElementById("showPhone").checked;
+      const showLanguages = document.getElementById("showLanguages").checked;
+
+      const photoFile = document.getElementById("photo").files[0];
+
+      let content = `الاسم الكامل: ${fullName}
+المسمى الوظيفي: ${jobTitle}
+البريد الإلكتروني: ${email}`;
+      if (showPhone) content += `
+رقم الهاتف: ${phone}`;
+      if (showSkills) content += `
+المهارات:
+${skills}`;
+      if (showLanguages) content += `
+اللغات:
+${languages}`;
+
+      function saveAndShowShare(doc) {
+        doc.save("cv.pdf");
+
+        if (navigator.share) {
+          navigator.share({
+            title: "سيرتي الذاتية",
+            text: "اطلع على سيرتي الذاتية",
+            url: window.location.href
+          }).catch(err => console.error("خطأ في المشاركة: " + err));
+        } else {
+          alert("ميزة المشاركة غير مدعومة في متصفحك.");
+        }
       }
 
-      doc.text(content, 10, 10);
-
-      if (photoFile) {
+      if (showPhoto && photoFile) {
         const reader = new FileReader();
         reader.onload = function(event) {
           const imgData = event.target.result;
           doc.addImage(imgData, 'JPEG', 150, 10, 40, 40);
-          doc.save("cv.pdf");
+          doc.text(content, 10, 60);
+          saveAndShowShare(doc);
         };
         reader.readAsDataURL(photoFile);
       } else {
-        doc.save("cv.pdf");
+        doc.text(content, 10, 10);
+        saveAndShowShare(doc);
       }
-
-      window.open("https://example-monetag-link.com", "_blank");
-    });
+    }
   </script>
 </body>
 </html>
