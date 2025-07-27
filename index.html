@@ -1,121 +1,120 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <title>مولد السيرة الذاتية</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; direction: rtl; padding: 20px; }
-    label, input, select, textarea { display: block; margin-bottom: 10px; width: 100%; max-width: 400px; }
-    .hidden { display: none; }
-    .button { margin-top: 10px; padding: 10px 20px; background: #28a745; color: white; border: none; cursor: pointer; border-radius: 5px; }
-    .button-secondary { background: #007bff; margin-left: 10px; }
-    #form-section, #preview-section { margin-top: 20px; }
+    body { font-family: Arial; background: #f8f8f8; padding: 20px; }
+    .container { max-width: 800px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; }
+    .section { margin-bottom: 20px; }
+    label { display: block; margin: 10px 0 5px; }
+    input, textarea, select { width: 100%; padding: 8px; margin-bottom: 10px; }
+    .btn { background: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+    .btn:hover { background: #0056b3; }
+    .options { margin-bottom: 10px; }
+    .hide-option { margin-bottom: 10px; }
+    .cv-output { border: 1px solid #ccc; padding: 15px; background: #f9f9f9; margin-top: 20px; }
+    .back-btn, .download-btn, .share-btn { margin-right: 10px; }
   </style>
 </head>
 <body>
+
+<div class="container" id="form-container">
   <h2>مولد السيرة الذاتية</h2>
 
-  <div id="form-section">
-    <label>اختر اللغة:
-      <select id="language">
-        <option value="ar">العربية</option>
-        <option value="en">English</option>
-        <option value="fr">Français</option>
-      </select>
-    </label>
-    <button class="button" onclick="startForm()">ابدأ</button>
+  <div class="options">
+    <label><input type="checkbox" class="hide-option" value="photo"> إخفاء الصورة</label>
+    <label><input type="checkbox" class="hide-option" value="skills"> إخفاء المهارات</label>
+    <label><input type="checkbox" class="hide-option" value="phone"> إخفاء رقم الهاتف</label>
+    <label><input type="checkbox" class="hide-option" value="languages"> إخفاء اللغات</label>
   </div>
 
-  <div id="preview-section" class="hidden">
-    <label>الاسم الكامل: <input type="text" id="fullName"></label>
-    <label>المسمى الوظيفي: <input type="text" id="jobTitle"></label>
-    <label>البريد الإلكتروني: <input type="email" id="email"></label>
-    <label>رقم الهاتف: <input type="tel" id="phone"></label>
-    <label>المهارات: <textarea id="skills"></textarea></label>
-    <label>اللغات:
-      <input type="text" id="languages" placeholder="مثال: العربية (متقدمة)، الإنجليزية (متوسطة)">
-    </label>
-    <label>الصورة الشخصية: <input type="file" id="photo"></label>
-    <fieldset>
-      <legend>إظهار/إخفاء الحقول:</legend>
-      <label><input type="checkbox" id="showPhoto" checked> الصورة</label>
-      <label><input type="checkbox" id="showSkills" checked> المهارات</label>
-      <label><input type="checkbox" id="showPhone" checked> رقم الهاتف</label>
-      <label><input type="checkbox" id="showLanguages" checked> اللغات</label>
-    </fieldset>
-    <button class="button" onclick="generatePDF()">معاينة وتحميل</button>
-    <button class="button-secondary button" onclick="goBack()">رجوع</button>
+  <div class="section"><label>الاسم الكامل</label><input type="text" id="name"></div>
+  <div class="section"><label>البريد الإلكتروني</label><input type="email" id="email"></div>
+  <div class="section"><label>رقم الهاتف</label><input type="tel" id="phone"></div>
+  <div class="section"><label>الصورة</label><input type="file" id="photo" accept="image/*"></div>
+  <div class="section"><label>النبذة التعريفية</label><textarea id="summary"></textarea></div>
+  <div class="section"><label>المهارات</label><textarea id="skills"></textarea></div>
+  <div class="section">
+    <label>اللغات ومدى الإتقان (مثال: الفرنسية - جيد جدا)</label>
+    <textarea id="languages"></textarea>
   </div>
 
-  <script>
-    function startForm() {
-      document.getElementById("form-section").classList.add("hidden");
-      document.getElementById("preview-section").classList.remove("hidden");
+  <button class="btn" onclick="generateCV()">إنشاء السيرة الذاتية</button>
+</div>
+
+<div class="container" id="cv-container" style="display:none;">
+  <h2>السيرة الذاتية</h2>
+  <div id="cv" class="cv-output"></div>
+  <button class="btn back-btn" onclick="goBack()">رجوع</button>
+  <button class="btn download-btn" onclick="downloadCV()">تحميل</button>
+  <button class="btn share-btn" onclick="shareCV()">مشاركة</button>
+</div>
+
+<script>
+function generateCV() {
+  const hideOptions = [...document.querySelectorAll('.hide-option:checked')].map(el => el.value);
+  const name = document.getElementById("name").value;
+  const email = document.getElementById("email").value;
+  const phone = document.getElementById("phone").value;
+  const summary = document.getElementById("summary").value;
+  const skills = document.getElementById("skills").value;
+  const languages = document.getElementById("languages").value;
+  const photoFile = document.getElementById("photo").files[0];
+
+  let html = `<p><strong>الاسم:</strong> ${name}</p>`;
+  html += `<p><strong>البريد الإلكتروني:</strong> ${email}</p>`;
+  if (!hideOptions.includes("phone")) html += `<p><strong>رقم الهاتف:</strong> ${phone}</p>`;
+  if (!hideOptions.includes("photo") && photoFile) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      html = `<img src="${e.target.result}" style="max-width:150px;"><br>` + html;
+      document.getElementById("cv").innerHTML = html;
     }
+    reader.readAsDataURL(photoFile);
+  } else {
+    if (!hideOptions.includes("photo")) html += `<p><em>لم يتم تحميل صورة</em></p>`;
+    document.getElementById("cv").innerHTML = html;
+  }
 
-    function goBack() {
-      document.getElementById("preview-section").classList.add("hidden");
-      document.getElementById("form-section").classList.remove("hidden");
-    }
+  html += `<p><strong>النبذة:</strong> ${summary}</p>`;
+  if (!hideOptions.includes("skills")) html += `<p><strong>المهارات:</strong> ${skills}</p>`;
+  if (!hideOptions.includes("languages")) html += `<p><strong>اللغات:</strong> ${languages}</p>`;
 
-    async function generatePDF() {
-      const {{ jsPDF }} = window.jspdf;
-      const doc = new jsPDF();
+  if (hideOptions.includes("photo") || !photoFile) {
+    document.getElementById("cv").innerHTML = html;
+  }
 
-      const fullName = document.getElementById("fullName").value;
-      const jobTitle = document.getElementById("jobTitle").value;
-      const email = document.getElementById("email").value;
-      const phone = document.getElementById("phone").value;
-      const skills = document.getElementById("skills").value;
-      const languages = document.getElementById("languages").value;
+  document.getElementById("form-container").style.display = "none";
+  document.getElementById("cv-container").style.display = "block";
+}
 
-      const showPhoto = document.getElementById("showPhoto").checked;
-      const showSkills = document.getElementById("showSkills").checked;
-      const showPhone = document.getElementById("showPhone").checked;
-      const showLanguages = document.getElementById("showLanguages").checked;
+function goBack() {
+  document.getElementById("cv-container").style.display = "none";
+  document.getElementById("form-container").style.display = "block";
+}
 
-      const photoFile = document.getElementById("photo").files[0];
+function downloadCV() {
+  const content = document.getElementById("cv").innerHTML;
+  const blob = new Blob([content], { type: "text/html" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "cv.html";
+  link.click();
+}
 
-      let content = `الاسم الكامل: ${fullName}
-المسمى الوظيفي: ${jobTitle}
-البريد الإلكتروني: ${email}`;
-      if (showPhone) content += `
-رقم الهاتف: ${phone}`;
-      if (showSkills) content += `
-المهارات:
-${skills}`;
-      if (showLanguages) content += `
-اللغات:
-${languages}`;
+function shareCV() {
+  if (navigator.share) {
+    navigator.share({
+      title: "سيرتي الذاتية",
+      text: "اطلع على سيرتي الذاتية",
+      url: window.location.href
+    }).catch(err => alert("فشل المشاركة: " + err));
+  } else {
+    alert("المشاركة غير مدعومة في هذا المتصفح.");
+  }
+}
+</script>
 
-      function saveAndShowShare(doc) {
-        doc.save("cv.pdf");
-        if (navigator.share) {
-          navigator.share({
-            title: "سيرتي الذاتية",
-            text: "اطلع على سيرتي الذاتية",
-            url: window.location.href
-          }).catch(err => console.error("خطأ في المشاركة: " + err));
-        } else {
-          alert("ميزة المشاركة غير مدعومة في متصفحك.");
-        }
-      }
-
-      if (showPhoto && photoFile) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-          const imgData = event.target.result;
-          doc.addImage(imgData, 'JPEG', 150, 10, 40, 40);
-          doc.text(content, 10, 60);
-          saveAndShowShare(doc);
-        };
-        reader.readAsDataURL(photoFile);
-      } else {
-        doc.text(content, 10, 10);
-        saveAndShowShare(doc);
-      }
-    }
-  </script>
 </body>
 </html>
